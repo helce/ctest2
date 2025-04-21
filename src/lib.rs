@@ -1075,6 +1075,8 @@ fn default_cfg(target: &str) -> Vec<(String, Option<String>)> {
         ("s390x", "64", "big")
     } else if target.starts_with("sparc64") {
         ("sparc64", "64", "big")
+    } else if target.starts_with("sparcv9") {
+        ("sparc64", "64", "big")
     } else if target.starts_with("asmjs") {
         ("asmjs", "32", "little")
     } else if target.starts_with("wasm32") {
@@ -1140,6 +1142,10 @@ fn default_cfg(target: &str) -> Vec<(String, Option<String>)> {
         ("nto", "unix", env)
     } else if target.contains("linux-ohos") {
         ("linux", "unix", "ohos")
+    } else if target.contains("aix") {
+        ("aix", "unix", "")
+    } else if target.contains("hurd") {
+        ("hurd", "unix", "gnu")
     } else {
         panic!("unknown os/family: {}", target)
     };
@@ -1718,7 +1724,8 @@ impl<'a> Generator<'a> {
                     fn __test_static_{name}() -> {ty};
                 }}
                 unsafe {{
-                    same(*(&{name} as *const _ as *const {ty}) as usize,
+                    // We must use addr_of! here because of https://github.com/rust-lang/rust/issues/114447
+                    same(*(std::ptr::addr_of!({name}) as *const {ty}) as usize,
                          __test_static_{name}() as usize,
                          "{name} static");
                 }}
@@ -1762,7 +1769,8 @@ impl<'a> Generator<'a> {
                     fn __test_static_{name}() -> *{mutbl} {ty};
                 }}
                 unsafe {{
-                    same(&{name} as *const _ as usize,
+                    // We must use addr_of! here because of https://github.com/rust-lang/rust/issues/114447
+                    same(std::ptr::addr_of!({name}) as usize,
                          __test_static_{name}() as usize,
                          "{name} static");
                 }}
@@ -1806,7 +1814,8 @@ impl<'a> Generator<'a> {
                     fn __test_static_{name}() -> *{mutbl} {ty};
                 }}
                 unsafe {{
-                    same(&{name} as *const _ as usize,
+                    // We must use addr_of! here because of https://github.com/rust-lang/rust/issues/114447
+                    same(std::ptr::addr_of!({name}) as usize,
                          __test_static_{name}() as usize,
                          "{name} static");
                 }}
